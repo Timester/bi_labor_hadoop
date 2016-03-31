@@ -12,16 +12,16 @@
 
 ### 0. Feladat - környezet telepítése
 
-### 1. Feladat - adatbetöltés Flume-al
+### 1. Feladat - adatbetöltés Flume-al - adam
 
-### 2. Feladat - Hive lekérdezés az adatokon
+### 2. Feladat - Hive lekérdezés az adatokon - imre
 
-### 3. Feladat - Spark analitika
+### 3. Feladat - Spark analitika - imre
 
 ## Önálló feladatok
 
-### 1. Feladat - Flume módosítása HTTP src-ra
+### 1. Feladat - Flume módosítása HTTP src-ra - adam
 
-### 2. Feladat - Bonyolultabb Hive lekérdezés
+### 2. Feladat - Bonyolultabb Hive lekérdezés - imre
 
-### 3. Feladat - Spark program
+### 3. Feladat - Spark program - imre
