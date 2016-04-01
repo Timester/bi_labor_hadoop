@@ -48,15 +48,17 @@ Azure felhőben futó Cloudera Hadoop disztribúció. Elérhetőségek:
 Táblák létrehozása: 
 
 ```
-CREATE EXTERNAL TABLE neptunkod_movies(id INT, title STRING, genre STRING)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
+CREATE EXTERNAL TABLE neptunkod_movies(id INT, title STRING, genre ARRAY<STRING>)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\001'
+COLLECTION ITEMS TERMINATED BY '|'
 STORED AS TEXTFILE;
 
-LOAD DATA INPATH '/user/.../bilabor/movies.dat' INTO TABLE neptunkod_users;
+LOAD DATA INPATH '/user/.../bilabor/movies.dat' INTO TABLE neptunkod_movies;
 ```
 
 ```
-CREATE EXTERNAL TABLE users(id INT, gender STRING, age STRING, occupation STRING, zip STRING)
+CREATE EXTERNAL TABLE neptunkod_users(id INT, gender STRING, age STRING, occupation STRING, zip STRING)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
 STORED AS TEXTFILE;
 
@@ -68,7 +70,19 @@ CREATE EXTERNAL TABLE neptunkod_ratings(userid INT, movieid INT, rating INT, tim
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
 STORED AS TEXTFILE;
 
-LOAD DATA INPATH '/user/.../bilabor/ratings.dat' INTO TABLE neptunkod_users;
+LOAD DATA INPATH '/user/.../bilabor/ratings.dat' INTO TABLE neptunkod_ratings;
+```
+
+Néhány egyszerű lekérdezés:
+
+Akciófilmek listája:
+```
+SELECT * FROM neptunkod_movies WHERE array_contains(genre, "Action");
+```
+
+Értékelések eloszlása:
+```
+SELECT rating, count(*) FROM bi_ratings GROUP BY rating;
 ```
 
 ### 3. Feladat - Spark analitika - imre
