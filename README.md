@@ -82,7 +82,7 @@ SELECT * FROM neptunkod_movies WHERE array_contains(genre, "Action");
 
 Értékelések eloszlása:
 ```
-SELECT rating, count(*) FROM bi_ratings GROUP BY rating;
+SELECT rating, count(*) FROM neptunkod_ratings GROUP BY rating;
 ```
 
 ### 3. Feladat - Spark analitika - imre
