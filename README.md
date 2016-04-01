@@ -48,24 +48,27 @@ Azure felhőben futó Cloudera Hadoop disztribúció. Elérhetőségek:
 Táblák létrehozása: 
 
 ```
-CREATE EXTERNAL TABLE movies(id INT, title STRING, genre STRING)
+CREATE EXTERNAL TABLE neptunkod_movies(id INT, title STRING, genre STRING)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
-STORED AS TEXTFILE
-LOCATION '<hdfs_location>';
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/.../bilabor/movies.dat' INTO TABLE neptunkod_users;
 ```
 
 ```
 CREATE EXTERNAL TABLE users(id INT, gender STRING, age STRING, occupation STRING, zip STRING)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
-STORED AS TEXTFILE
-LOCATION '<hdfs_location>';
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/.../bilabor/users.dat' INTO TABLE neptunkod_users;
 ```
 
 ```
-CREATE EXTERNAL TABLE ratings(userid INT, movieid INT, rating INT, timestamp INT)
+CREATE EXTERNAL TABLE neptunkod_ratings(userid INT, movieid INT, rating INT, timestamp INT)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
-STORED AS TEXTFILE
-LOCATION '<hdfs_location>';
+STORED AS TEXTFILE;
+
+LOAD DATA INPATH '/user/.../bilabor/ratings.dat' INTO TABLE neptunkod_users;
 ```
 
 ### 3. Feladat - Spark analitika - imre
