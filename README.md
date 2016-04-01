@@ -25,7 +25,47 @@ Webalkalmazás a Hadoop környezetek leggyakoribb funkcióinak kezeléséhez:
   * Java API
 
 
-* hive - adam
+### Hive - [Hive](https://hive.apache.org)
+
+A Hive egy Hadoophoz készült adattárház megoldás, mely segítségével nagyméretű adathalmazokat menedzselhetünk és kérdezhetünk le. A segítségével HDFS-en tárolt fájlokon fogalmazhatunk meg lekérdezéseket, melyek végrehajtásához a MapReduce programozási modellt fogja használni. A Hive-ot open source projektként az Apache Software Foundation gondozza.
+
+A Hive-al kezelt adatokat legtöbbször valamilyen CSV szerű formátumban adjuk meg, azonban a delimiter karakterre tett ajánlás itt a `\001` (`^A`) ASCII vezérlőkarakter. Ez az ajánlás nem kötelező jellegű, Hive segítségével feldolgozhatunk hagyományos `,` karakterrel elválasztott CSV fájlokat is, sőt akár teljesen más, például JSON vagy ByteStream formátumban érkező adatokat is.
+
+Fontos tisztában lenni azzal, hogy a Hive nem OLTP (Online Transaction Processing) típusú használatra lett optimalizálva (ellentétben például az Oracle DBMS-el), hanem arra, hogy nagyméretű adatokat megbízhatóan, elosztott környezetben kezelhessünk. A Hive lekérdezések a MapReduce modellt kihasználva olyan méretű adathalmazokon is képesek lefutni, amelyeket egy hagyományos DBMS-el már nem tudunk kezelni. Az előzőek miatt a Hiveot elsősorban analitikai feladatokra használjuk, ahol nem a lefutási idő, hanem a feldolgozandó adat mennyisége a kritikus szempont.
+
+#### Hive a Facebooknál (kitekintés)
+A Hive-ot a Facebook kezdte el fejleszteni, majd 2008-ban tette azt nyílt forráskódúvá. Motivációja az volt, hogy a cég megalapítása óta kereskedelmi forgalomban lévő RDBMS-eket használtak, melyek egy idő után nem voltak képesek kezelni a felhasználók által generált óriási adatmennyiséget, és annak nagy ütemű emelkedését (2007-ben 15 TB adattal gazdálkodtak, amely 2009-re 2 PB-ra nőtt). Ilyen körülmények között voltak olyan naponta futtatandó jobok, melyek futási ideje tovább tartott, mint 24 óra, ami nyilvánvalóan sürgető szükségét hozta egy új adattárház rendszer bevezetésének.
+
+Úgy döntöttek, hogy az új rendszer a Hadoop alapjaira fog épülni, azonban ez a kezdetekben sok plusz terhet rótt a fejlesztőkre, hiszen egy egyszerű lekérdezéshez is MapReduce programokat kellett írniuk. Így született meg a Hive ötlete, amely segítségével sokkal egyszerűbben tudták az adatokat kezelni és azokon lekérdezéseket megfogalmazni. A Hive már a kezdetek óta nagy népszerűségre tett szert a cégen belül, 2009-re a naponta betöltendő 15 TB adatmennyiséget több ezer job dolgozta fel.
+
+Forrás: [Hive - A Petabyte Scale Data Warehouse using Hadoop](https://www.facebook.com/notes/facebook-engineering/hive-a-petabyte-scale-data-warehouse-using-hadoop/89508453919/)
+
+#### HiveQL
+
+A lekérdezések megfogalmazásához a Hive definiál egy lekérdező nyelvet, a HiveQL-t, melynek szintaktikája nagyon hasonlatos az SQL nyelvéhez. A HiveQL segítségével azonban a lekérdezéseinkbe beépíthetünk custom MapReduce algoritmusokat is, hogy még szélesebb legyen az adatfeldolgozási lehetőségek skálája. A nyelv dokumentációját a Hive wiki oldalán [érhetjük el](https://cwiki.apache.org/confluence/display/Hive/LanguageManual), de a laborfeladatok elvégzése során nagy mértékben támaszkodhatunk a korábban megszerzett SQL tudásunkra is.
+
+#### Hive tábla létrehozása
+A Hive hagyományos adatfájlokon képes működni, azokra a lekérdezések futási idejében rákényszerít egy sémát, melyet a táblák létrehozásakor adunk meg. A tábla metaadatait az úgynevezett Metastore table tartalmazza, amely egy hagyományos relációs adatbázis, azonban az adatok fizikailag továbbra is a HDFS-en egy szöveges fájl formájában léteznek.
+
+Hive táblák létrehozására az alábbiakban láthatunk egy példát:
+```
+CREATE EXTERNAL TABLE movie_data (
+  userid INT, movieid INT,
+  rating INT, unixtime STRING)
+  ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY '\t'
+  PARTITIONED BY (year INT)
+  LOCATION '/user/movies'
+```
+A parancs a HiveQL ismerete nélkül is könnyen értelmezhető, azonban észrevehetünk benne olyan kulcsszavakat, amelyekkel korábban az SQL nyelv használata során nem találkoztunk.
+
+Vegyük észre például az `EXTERNAL` kulcsszót. Ennek használata opcionális, a default működést módosíthatjuk a használatával. Alapvetően a Hive önmaga menedzseli a fizikai adatfájlokat, így például egy tábla eldobása után a Hive a hozzá tartozó adatfájlokat fizikailag is törli. External táblák esetén ennek a működésnek az ellentettje valósul meg, így már meglévő adatfájlokat használhatunk anélkül, hogy a Hive azokat elmozgatná, törölné, stb.
+
+Az SQL nyelv használata során a `ROW FORMAT` vezérlőszavakkal is ritkán találkozunk. A Hive esetén így adhatjuk meg azt, hogy az adatforrás sorait milyen formában tudja deszerializálni a végrehajtó motor. Itt megadható bármilyen osztály, amely megvalósítja a `org.apache.hadoop.hive.serde2.SerDe` interfészt, amely az uniója a `org.apache.hadoop.hive.serde2.Deserializer` és `org.apache.hadoop.hive.serde2.Serializer` interfészeknek. CSV fájlok esetén azonban a `DELIMITED` értéket használjuk, amely azt fejezi ki, hogy a fájl valamilyen vezérlőkarakterekkel elválasztott értékeket tartalmaz. Ezen vezérlőkaraktert a `FIELDS TERMINATED BY` kulcsszavak után adhatjuk meg, jelen esetben ez a tabulátor karakter.
+
+A Hive segítségével kezelhetünk partícionált táblákat is, amely azt jelenti, hogy az adatfájlunk több partícióra bontva, külön mappákban van elhelyezve a HDFS-en. A `PARTITIONED BY (year INT)` azt jelenti, hogy a mappák nevei egy `INT` értéket vesznek fel, melyek a `year` oszlopot reprezentálják. A Hive lekérdezésekben ezek után a `year` attribútumot ugyanúgy kezelhetjük, mint az összes többi, partícionálásra nem használt attribútumot.
+
+External táblák esetén meg kell adni, hogy a tábla alapját képező adatfájlok milyen elérési út alatt találhatók meg, ezért szerepel a parancsban a `LOCATION '/user/movies'` sor is.
 
 ### Flume - [Flume](https://flume.apache.org)
 
