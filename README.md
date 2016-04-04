@@ -31,14 +31,7 @@ A Hive egy Hadoophoz készült adattárház megoldás, mely segítségével nagy
 
 A Hive-al kezelt adatokat legtöbbször valamilyen CSV szerű formátumban adjuk meg, azonban a delimiter karakterre tett ajánlás itt a `\001` (`^A`) ASCII vezérlőkarakter. Ez az ajánlás nem kötelező jellegű, Hive segítségével feldolgozhatunk hagyományos `,` karakterrel elválasztott CSV fájlokat is, sőt akár teljesen más, például JSON vagy ByteStream formátumban érkező adatokat is.
 
-Fontos tisztában lenni azzal, hogy a Hive nem OLTP (Online Transaction Processing) típusú használatra lett optimalizálva (ellentétben például az Oracle DBMS-el), hanem arra, hogy nagyméretű adatokat megbízhatóan, elosztott környezetben kezelhessünk. A Hive lekérdezések a MapReduce modellt kihasználva olyan méretű adathalmazokon is képesek lefutni, amelyeket egy hagyományos DBMS-el már nem tudunk kezelni. Az előzőek miatt a Hiveot elsősorban analitikai feladatokra használjuk, ahol nem a lefutási idő, hanem a feldolgozandó adat mennyisége a kritikus szempont.
-
-#### Hive a Facebooknál (kitekintés)
-A Hive-ot a Facebook kezdte el fejleszteni, majd 2008-ban tette azt nyílt forráskódúvá. Motivációja az volt, hogy a cég megalapítása óta kereskedelmi forgalomban lévő RDBMS-eket használtak, melyek egy idő után nem voltak képesek kezelni a felhasználók által generált óriási adatmennyiséget, és annak nagy ütemű emelkedését (2007-ben 15 TB adattal gazdálkodtak, amely 2009-re 2 PB-ra nőtt). Ilyen körülmények között voltak olyan naponta futtatandó jobok, melyek futási ideje tovább tartott, mint 24 óra, ami nyilvánvalóan sürgető szükségét hozta egy új adattárház rendszer bevezetésének.
-
-Úgy döntöttek, hogy az új rendszer a Hadoop alapjaira fog épülni, azonban ez a kezdetekben sok plusz terhet rótt a fejlesztőkre, hiszen egy egyszerű lekérdezéshez is MapReduce programokat kellett írniuk. Így született meg a Hive ötlete, amely segítségével sokkal egyszerűbben tudták az adatokat kezelni és azokon lekérdezéseket megfogalmazni. A Hive már a kezdetek óta nagy népszerűségre tett szert a cégen belül, 2009-re a naponta betöltendő 15 TB adatmennyiséget több ezer job dolgozta fel.
-
-Forrás: [Hive - A Petabyte Scale Data Warehouse using Hadoop](https://www.facebook.com/notes/facebook-engineering/hive-a-petabyte-scale-data-warehouse-using-hadoop/89508453919/)
+Fontos tisztában lenni azzal, hogy a Hive nem OLTP (Online Transaction Processing) típusú használatra lett optimalizálva (ellentétben például az Oracle DBMS-el), hanem arra, hogy nagyméretű adatokat megbízhatóan, elosztott környezetben kezelhessünk. A Hive lekérdezések a MapReduce modellt kihasználva olyan méretű adathalmazokon is képesek lefutni, amelyeket egy hagyományos DBMS-el már nem tudunk kezelni. Az előzőek miatt a Hive-ot elsősorban analitikai feladatokra használjuk, ahol nem a lefutási idő, hanem a feldolgozandó adat mennyisége a kritikus szempont.
 
 #### HiveQL
 
@@ -66,6 +59,13 @@ Az SQL nyelv használata során a `ROW FORMAT` vezérlőszavakkal is ritkán tal
 A Hive segítségével kezelhetünk partícionált táblákat is, amely azt jelenti, hogy az adatfájlunk több partícióra bontva, külön mappákban van elhelyezve a HDFS-en. A `PARTITIONED BY (year INT)` azt jelenti, hogy a mappák nevei egy `INT` értéket vesznek fel, melyek a `year` oszlopot reprezentálják. A Hive lekérdezésekben ezek után a `year` attribútumot ugyanúgy kezelhetjük, mint az összes többi, partícionálásra nem használt attribútumot.
 
 External táblák esetén meg kell adni, hogy a tábla alapját képező adatfájlok milyen elérési út alatt találhatók meg, ezért szerepel a parancsban a `LOCATION '/user/movies'` sor is.
+
+#### Hive a Facebooknál (kitekintés)
+A Hive-ot a Facebook kezdte el fejleszteni, majd 2008-ban tette azt nyílt forráskódúvá. Motivációja az volt, hogy a cég megalapítása óta kereskedelmi forgalomban lévő RDBMS-eket használtak, melyek egy idő után nem voltak képesek kezelni a felhasználók által generált óriási adatmennyiséget, és annak nagy ütemű gyarapodását (2007-ben 15 TB adattal gazdálkodtak, amely 2009-re 2 PB-ra nőtt). Ilyen körülmények között voltak olyan naponta futtatandó jobok, melyek futási ideje tovább tartott, mint 24 óra, ami nyilvánvalóan sürgető szükségét hozta egy új adattárház rendszer bevezetésének.
+
+Úgy döntöttek, hogy az új rendszer a Hadoop alapjaira fog épülni, azonban ez a kezdetekben sok plusz terhet rótt a fejlesztőkre, hiszen egy egyszerű lekérdezéshez is MapReduce programokat kellett írniuk. Így született meg a Hive ötlete, amely segítségével sokkal egyszerűbben tudták az adatokat kezelni és azokon lekérdezéseket megfogalmazni. A Hive már a kezdetek óta nagy népszerűségre tett szert a cégen belül, 2009-re a naponta betöltendő 15 TB adatmennyiséget több ezer job dolgozta fel.
+
+Forrás: [Hive - A Petabyte Scale Data Warehouse using Hadoop](https://www.facebook.com/notes/facebook-engineering/hive-a-petabyte-scale-data-warehouse-using-hadoop/89508453919/)
 
 ### Flume - [Flume](https://flume.apache.org)
 
