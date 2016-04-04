@@ -3,27 +3,38 @@
 ## Emlékeztető
 
 ### Hue - [Hadoop user Experience](http://gethue.com/)
-Webalkalmazás a Hadoop környezetek leggyakoribb funkcióinak kezeléséhez:
+A Hue egy webalkalmazás a Hadoop környezetekben leggyakrabban használt funkciók egyszerű, webes felületről történő kezeléséhez. A Hue a Cloudera nyílt forráskódú fejlesztése, minden Hadoop disztribúcióval kompatibilis, az egyes szolgáktatásokkal azok standard interfészein keresztül kommunikál. Az alkalmazás a következő funkcionalitást biztosítja:
+
 * HDFS böngésző
-* Hive / Impala query editor
+* Hive / Impala lekérdezés szerkesztő
 * Oozie ütemező, job-ok indítása, workflow szerkesztő
   * Spark
   * Hive
   * HDFS műveletek
   * shell
   * ...
-* Apache Solr szerkezstő / felület
-* Apache Sentry editor
-* Sqoop 
+* Apache Solr szerkesztő / felület
+* Apache Sentry menedzsment
+* Sqoop menedzsment
+
+A Hue használatával megszabadulhatunk (az esetek nagyrészében) a parancssori interfészek kényelmetlenségeitől. 
 
 ### HDFS - [Hadoop Distributed File System](https://hadoop.apache.org/docs/r1.2.1/hdfs_design.html)
-* Elosztott, redundáns, blokkalapú adattárolás
-* A Hadoop alapja
-* Elérés
-  * REST (WebHDFS)
-  * shell
-  * Java API
+A Hadoop alapját két szolgáltatás képzi ezek a HDFS és a YARN. A YARN-al részletesen itt most nem foglalkozunk, röviden a Yet Another Resource Negotiator (YARN) egy erőforráskezelő szolgáltatás, ami a klaszterben található processzormagokat, memóriát és egyéb erőforrásokat szétosztja a futo job-ok közt. Mindemellett lebonyolítja és felügyeli az egyes folyamatok futását.
 
+A HDFS azaz Hadoop Distributed File System egy elosztott redundáns blokk alapú fájlrendszer. Hadoop környezetekben 95%-ban HDFS fog az adattárolás eszközeként szolgálni, erre épülnek a különböző adatbázisok és eszközök.
+
+A HDFS a Google File System-ről kiadott cikkek alapján készült azzal a céllal, hogy megbízható és hatékony adattárolást tegyen lehetővé akár olcsó, hétköznapi hardvereken is. Ezen kritériumok teljesítéséhez az adatokat replikálja, több példányban tárolja. A replikáció blokk szinten történik, egy-egy fájl blokkjai több gépen szétszórva, több példányban tárolódnak. Ez a módszer egyrészt garantálja az adatok biztonságát egy-egy gép kiesése esetén, valamint a párhuzamos olvasás miatt teljesítmény javulást is.
+
+A HDFS klaszterben 2 típusú node létezik. Tipikusa 1 darab NameNode, ami a fájlok blokkjainak helyét és egyéb metainformációkat tárol, menedzsment feladatokat lát el. Valamint számos DataNode, amik az adatok tárolásárért és replikálásáért felelősek. A NameNode kisesése az összes adat olvashatatlanná válását is jelenti így ezt gyakran RAID-es valamint High Availability konfigurációkkal igyekeznek védeni.
+
+A HDFS-el történő kommunikáció során (fájlok írása olvasása) kezdeti lépésben mindig a NameNode-hoz fordulunk, ami megmondja hol találjuk, vagy hova írhatjuk adott fájl darabjait. A konkrét adatmozgatás közvetlenül a DataNode-okhoz kapcsolódva történik, ezzel eloszlatva a terhelést.
+
+A HDFS elérésére számos mód kínálkozik:
+* Java API
+* Parancssori kliens
+* WebHDFS
+* Hue
 
 ### Hive - [Hive](https://hive.apache.org)
 
@@ -121,7 +132,25 @@ A sink típusa `logger`, amely az egyik legegyszerűbb sink, feladata, hogy az e
 
 A channel konfigurálása is az előzőekhez hasonlóan történik. A konfiguráció utolsó blokkjában azt határozzuk meg, hogy az `r1` source az eseményeit a `c1` channelbe továbbítsa, ahonnan a `k1` sink fogja kivenni őket.
 
-* spark - imre
+### Spark - [Spark](https://spark.apache.org/)
+A Spark ma a legnépszerűb adatfeldolgozó eszköz Hadoop környezetben. A korábban igen elterjedt és nagy sikernek örvendő Map Reduce paradigmát szinte teljesen felváltotta. Térnyerése a kitűnő, Map Reduce programoknál akár 100 szor jobb teljesítményének valamin az egyszerű, jól használható funkcionális API-jának köszönheti. Fontos megjegyezni, hogy a Spark ezt a sebességet azzal éri el, hogy minden adatot memóriában tart így olyan adathalmazok feldolgozása, amik nem férnek be a memóriába bajos lehet.
+
+A Spark megjelenésével a Hadoop elkezdett a batch alapú szemléletből nyitni a real-time foldolgozás irányába is. Ennek egyik vezér eleme a Spark Streaming, ami microbatching-el megvalósított stream feldolgozásra képes. A Spark-hoz sok további kiegészítő csomag is készült melyek gráf feldolgozási, SQL vagy gépi tanulási könyvtárakat, algoritmusokat adnak a fejleszetők kezébe. Ki és bemeneti adatforrásokat tekintve sem szenvedünk hiányt, a HDFS, HBase, Cassandra mind támogatott. Spark programokat Scala, Java, Python és R nyelven is lehet írni, a Spark maga Scala-ban készült. Mivel az API-ja funkcionlis jellegű ezért a legszebb kódot ezt támogató nyelvekben, azaz Scala-ban vagy Python-ban lehet készíteni, teljesítmény szempontjából egyértelműen a Scala preferált.
+
+#### Egy Spark program alapjai
+Egy egyszerű Spark programban tipikusan betöltünk valamilyen adatokat egy forrásból, ezeken műveleteket hajtunk végre majd a kívánt eredményeket eltároljuk valahova. Az alábbi kódrészlet egy szövegben számolja meg az egyes szavak előfordulásainak számát, bemutatva az imént említett főbb lépéseket.
+
+```
+val textFile = sc.textFile("hdfs://...")
+val counts = textFile
+                 .flatMap(line => line.split(" "))
+                 .map(word => (word, 1))
+                 .reduceByKey(_ + _)
+counts.saveAsTextFile("hdfs://...")
+```
+
+Első lépésként betöltjük a forrás adatokat a HDFS-ről, ezt követően jön a feldolgozás. A bemeneti szöveget soronként feldolgozva szóközök mentén szavakra tördeljük, majd minden szót egy (szó, 1) párra mappelünk ahol a szó a kulcs és a hozzá tartozó érték minden esetben egy. A következő lépésben a reduceByKey metódussal kulcsonként csoportosítva összeadjuk az értékeket, így kapjuk meg, hogy 1 szó pontosan hányszor szerepelt a szövegben. A szó - szószám párokból álló listát végül HDFS-re mentjük.  
+
 
 ## Vezetett rész
 
