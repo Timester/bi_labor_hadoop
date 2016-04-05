@@ -231,11 +231,11 @@ movieagent.sources.r1.spoolDir = /user/data/movielens/ratings/NEPTUN
 movieagent.sinks.k1.sink.directory = /user/NEPTUN/ratings
 ```
 
-### 2. Feladat - Hive lekérdezés az adatokon - imre
+### 2. Feladat - Hive lekérdezés az adatokon
 
 #### Táblák létrehozása
 
-A táblákat external-ként hozzuk létre, a sémát az adatfájloknak megfelően adju meg. Mivel a movies.dat adatfájl a genre mezőben több értéket is tárol, ez remek alkalom a Hive összetet adattípusainak kipróbálására. Jelen esetben ```ARAY<STRING>``` típusként vesszük fel ezt a mezőt. A tömb elemeit elválasztó karaktert a ```COLLECTION ITEMS TERMINATED BY '|'``` kulcsszavakkal definiáljuk. Az adatok helyét nem a korábban ismertetett módon adjuk meg, hanem egy külön paranccsal töltjük be. Erre azért van szükség mert a ```LOCAION``` paraméteréül csak mappa adható meg.
+A táblákat external-ként hozzuk létre, a sémát az adatfájloknak megfelelően adjuk meg. Mivel a movies.dat adatfájl a genre mezőben több értéket is tárol, ez remek alkalom a Hive összetett adattípusainak kipróbálására. Jelen esetben ```ARAY<STRING>``` típusként vesszük fel ezt a mezőt. A tömb elemeit elválasztó karaktert a ```COLLECTION ITEMS TERMINATED BY '|'``` kulcsszavakkal definiáljuk. Az adatok helyét nem a korábban ismertetett módon adjuk meg, hanem egy külön paranccsal töltjük be. Erre azért van szükség mert a ```LOCAION``` paraméteréül csak mappa adható meg.
 
 ```
 CREATE EXTERNAL TABLE neptunkod_movies(id INT, title STRING, genre ARRAY<STRING>)
@@ -270,9 +270,9 @@ SELECT * FROM neptunkod_movies WHERE array_contains(genre, "Action");
 SELECT rating, count(*) FROM neptunkod_ratings GROUP BY rating;
 ```
 
-### 3. Feladat - Spark analitika - imre
+### 3. Feladat - Spark analitika
 
-A Spark segítségével tetszőleges kódot írhatunk és futtathatunk az adatainkon, így jóval rugalmasabb mint a Hive, de egyszerű példáknál sok átfedés van a két eszköz tudása közt. Erre példaként elkészítjük az előző feladat Hive-os példáit Spark segítségével is. 
+A Spark segítségével tetszőleges kódot írhatunk és futtathatunk az adatainkon, így jóval rugalmasabb mint a Hive, de egyszerű példáknál sok átfedés van a két eszköz tudása közt. Ezt szemléltetendő elkészítjük az előző feladat Hive-os példáit Spark segítségével is. 
 
 Akciófilmek listája:
 ```
@@ -339,7 +339,7 @@ public class SparkRatingsCount {
     }
 }
 ```
-A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. Beolvassuk a forrást, majd a bemenet sorait kulcs - érték párokká mappeljük. Ezekbena  párokban a kulcs maga az értékelés, az érték pedig egy darab 1-es. Innentől a korábban bemutatott wordcount-hoz hasonlóan kulcs alapján összeadjuk az értékeket és így megkapjuk, hogy melyikből mennyi van.
+A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. Beolvassuk a forrást, majd a bemenet sorait kulcs - érték párokká mappeljük. Ezekben a párokban a kulcs maga az értékelés, az érték pedig egy darab 1-es. Innentől a korábban bemutatott wordcount-hoz hasonlóan kulcs alapján összeadjuk az értékeket és így megkapjuk, hogy melyikből mennyi van.
 
 
 ## Önálló feladatok
