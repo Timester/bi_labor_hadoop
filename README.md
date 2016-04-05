@@ -344,7 +344,10 @@ A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. 
 
 ## Önálló feladatok
 
-### 1. Feladat - Flume módosítása HTTP src-ra - adam
+### 1. Feladat - Users dataset betöltése Flume segítségével
+Töltse be a `/user/data/movielens/users/NEPTUN` elérési út alatt található fájlokat a saját mappájába (`/user/NEPTUN/users`)!
+A betöltés során szűrje ki a 18 év alatti felhasználókat. Az adatszerkezet leírása a `/user/data/movielens/README` fájlban található.
+A feladat megoldásához ne írjon saját Flume interceptort.
 
 ### 2. Feladat - Bonyolultabb Hive lekérdezés - imre
 
