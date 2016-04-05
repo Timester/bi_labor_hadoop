@@ -26,7 +26,7 @@ A HDFS azaz Hadoop Distributed File System egy elosztott redundáns blokk alapú
 
 A HDFS a Google File System-ről kiadott cikkek alapján készült azzal a céllal, hogy megbízható és hatékony adattárolást tegyen lehetővé akár olcsó, hétköznapi hardvereken is. Ezen kritériumok teljesítéséhez az adatokat replikálja, több példányban tárolja. A replikáció blokk szinten történik, egy-egy fájl blokkjai több gépen szétszórva, több példányban tárolódnak. Ez a módszer egyrészt garantálja az adatok biztonságát egy-egy gép kiesése esetén, valamint a párhuzamos olvasás miatt teljesítmény javulást is.
 
-A HDFS klaszterben 2 típusú node létezik. Tipikusa 1 darab NameNode, ami a fájlok blokkjainak helyét és egyéb metainformációkat tárol, menedzsment feladatokat lát el. Valamint számos DataNode, amik az adatok tárolásárért és replikálásáért felelősek. A NameNode kisesése az összes adat olvashatatlanná válását is jelenti így ezt gyakran RAID-es valamint High Availability konfigurációkkal igyekeznek védeni.
+A HDFS klaszterben 2 típusú node létezik. Tipikusan 1 darab NameNode, ami a fájlok blokkjainak helyét és egyéb metainformációkat tárol, menedzsment feladatokat lát el. Valamint számos DataNode, amik az adatok tárolásárért és replikálásáért felelősek. A NameNode kisesése az összes adat olvashatatlanná válását is jelenti így ezt gyakran RAID-es valamint High Availability konfigurációkkal igyekeznek védeni.
 
 A HDFS-el történő kommunikáció során (fájlok írása olvasása) kezdeti lépésben mindig a NameNode-hoz fordulunk, ami megmondja hol találjuk, vagy hova írhatjuk adott fájl darabjait. A konkrét adatmozgatás közvetlenül a DataNode-okhoz kapcsolódva történik, ezzel eloszlatva a terhelést.
 
@@ -133,12 +133,14 @@ A sink típusa `logger`, amely az egyik legegyszerűbb sink, feladata, hogy az e
 A channel konfigurálása is az előzőekhez hasonlóan történik. A konfiguráció utolsó blokkjában azt határozzuk meg, hogy az `r1` source az eseményeit a `c1` channelbe továbbítsa, ahonnan a `k1` sink fogja kivenni őket.
 
 ### Spark - [Spark](https://spark.apache.org/)
-A Spark ma a legnépszerűb adatfeldolgozó eszköz Hadoop környezetben. A korábban igen elterjedt és nagy sikernek örvendő Map Reduce paradigmát szinte teljesen felváltotta. Térnyerése a kitűnő, Map Reduce programoknál akár 100 szor jobb teljesítményének valamin az egyszerű, jól használható funkcionális API-jának köszönheti. Fontos megjegyezni, hogy a Spark ezt a sebességet azzal éri el, hogy minden adatot memóriában tart így olyan adathalmazok feldolgozása, amik nem férnek be a memóriába bajos lehet.
+A Spark ma a legnépszerűb adatfeldolgozó eszköz Hadoop környezetben. A korábban igen elterjedt és nagy sikernek örvendő Map Reduce paradigmát szinte teljesen felváltotta. Térnyerése a kitűnő, Map Reduce programoknál akár százszor jobb teljesítményének valamint az egyszerű, jól használható funkcionális API-jának köszönheti. Fontos megjegyezni, hogy a Spark ezt a sebességet azzal éri el, hogy minden adatot memóriában tart így olyan adathalmazok feldolgozása, amik nem férnek be a memóriába bajos lehet.
 
-A Spark megjelenésével a Hadoop elkezdett a batch alapú szemléletből nyitni a real-time foldolgozás irányába is. Ennek egyik vezér eleme a Spark Streaming, ami microbatching-el megvalósított stream feldolgozásra képes. A Spark-hoz sok további kiegészítő csomag is készült melyek gráf feldolgozási, SQL vagy gépi tanulási könyvtárakat, algoritmusokat adnak a fejleszetők kezébe. Ki és bemeneti adatforrásokat tekintve sem szenvedünk hiányt, a HDFS, HBase, Cassandra mind támogatott. Spark programokat Scala, Java, Python és R nyelven is lehet írni, a Spark maga Scala-ban készült. Mivel az API-ja funkcionlis jellegű ezért a legszebb kódot ezt támogató nyelvekben, azaz Scala-ban vagy Python-ban lehet készíteni, teljesítmény szempontjából egyértelműen a Scala preferált.
+A Spark megjelenésével a Hadoop elkezdett a batch alapú szemléletből nyitni a real-time foldolgozás irányába is. Ennek egyik vezér eleme a Spark Streaming, ami microbatching-el megvalósított stream feldolgozásra képes. A Spark-hoz sok további kiegészítő csomag is készült melyek gráf feldolgozási, SQL vagy gépi tanulási könyvtárakat, algoritmusokat adnak a fejleszetők kezébe. Ki és bemeneti adatforrásokat tekintve sem szenvedünk hiányt, a HDFS, HBase, Hive mind támogatott. Spark programokat Scala, Java, Python és R nyelven is lehet írni, a Spark maga Scala-ban készült. Mivel az API-ja funkcionális jellegű ezért a legszebb kódot ezt támogató nyelvekben, azaz Scala-ban vagy Python-ban lehet készíteni, teljesítmény szempontjából egyértelműen a Scala preferált.
 
 #### Egy Spark program alapjai
-Egy egyszerű Spark programban tipikusan betöltünk valamilyen adatokat egy forrásból, ezeken műveleteket hajtunk végre majd a kívánt eredményeket eltároljuk valahova. Az alábbi kódrészlet egy szövegben számolja meg az egyes szavak előfordulásainak számát, bemutatva az imént említett főbb lépéseket.
+Egy egyszerű Spark programban tipikusan betöltünk valamilyen adatokat egy forrásból, ezeken műveleteket hajtunk végre majd a kívánt eredményeket eltároljuk valahova. A Spark egy nagyon fontos központi figalma az RDD (Resilient Distributed Dataset), egy olyan adatszerkezet mely a kleszteren elosztottan kerül tárolásra. Ezeken az RDD-ken végezhetünk műveleteket melyeknek két típusa létezik transzformáció és akció. A transzformációk új RDD-t fognak eredményezni ilyen a mappelés, szűrés stb. Az akciók az RDD-n valamilyen aggregációt hajtanak végre, eredményük tipikusan egy szám, egy pár, egy objektum, de nem RDD. A Spark a transzformációkat lazy módon hajtja végre. Mindaddíg semmit nem csinál, amíg egy akció nem következik. Így lehetősége van a parancsok sorozatát kielemezni és optimalizálni.
+
+Az alábbi kódrészlet egy szövegben számolja meg az egyes szavak előfordulásainak számát, bemutatva az imént említett főbb lépéseket.
 
 ```
 val textFile = sc.textFile("hdfs://...")
@@ -168,7 +170,9 @@ Azure felhőben futó Cloudera Hadoop disztribúció. Elérhetőségek:
 
 ### 2. Feladat - Hive lekérdezés az adatokon - imre
 
-Táblák létrehozása: 
+#### Táblák létrehozása
+
+A táblákat external-ként hozzuk létre, a sémát az adatfájloknak megfelően adju meg. Mivel a movies.dat adatfájl a genre mezőben több értéket is tárol, ez remek alkalom a Hive összetet adattípusainak kipróbálására. Jelen esetben ```ARAY<STRING>``` típusként vesszük fel ezt a mezőt. A tömb elemeit elválasztó karaktert a ```COLLECTION ITEMS TERMINATED BY '|'``` kulcsszavakkal definiáljuk. Az adatok helyét nem a korábban ismertetett módon adjuk meg, hanem egy külön paranccsal töltjük be. Erre azért van szükség mert a ```LOCAION``` paraméteréül csak mappa adható meg.
 
 ```
 CREATE EXTERNAL TABLE neptunkod_movies(id INT, title STRING, genre ARRAY<STRING>)
@@ -180,23 +184,18 @@ STORED AS TEXTFILE;
 LOAD DATA INPATH '/user/.../bilabor/movies.dat' INTO TABLE neptunkod_movies;
 ```
 
-```
-CREATE EXTERNAL TABLE neptunkod_users(id INT, gender STRING, age STRING, occupation STRING, zip STRING)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
-STORED AS TEXTFILE;
-
-LOAD DATA INPATH '/user/.../bilabor/users.dat' INTO TABLE neptunkod_users;
-```
+A ratings táblánál nincs szükség összetett adattípus használatára létrehozása így egyszerűbb, de az előzőhöz teljesen hasonló.
 
 ```
 CREATE EXTERNAL TABLE neptunkod_ratings(userid INT, movieid INT, rating INT, timestamp INT)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY '\001'
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\001'
 STORED AS TEXTFILE;
 
 LOAD DATA INPATH '/user/.../bilabor/ratings.dat' INTO TABLE neptunkod_ratings;
 ```
 
-Néhány egyszerű lekérdezés:
+#### Néhány egyszerű lekérdezés
 
 Akciófilmek listája:
 ```
@@ -209,6 +208,76 @@ SELECT rating, count(*) FROM neptunkod_ratings GROUP BY rating;
 ```
 
 ### 3. Feladat - Spark analitika - imre
+
+A Spark segítségével tetszőleges kódot írhatunk és futtathatunk az adatainkon, így jóval rugalmasabb mint a Hive, de egyszerű példáknál sok átfedés van a két eszköz tudása közt. Erre példaként elkészítjük az előző feladat Hive-os példáit Spark segítségével is. 
+
+Akciófilmek listája:
+```
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+
+public class SparkActionMovieCount {
+
+    public static void main(String[] args) throws Exception {
+        if (args.length < 2) {
+            System.err.println("Usage: SparkActionMovieCount <input-file> <output-folder>");
+            System.exit(1);
+        }
+
+        final String outputPath = args[1];
+        SparkConf sparkConf = new SparkConf().setAppName("SparkActionMovieCount").setMaster("local");
+        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
+
+        // line example: 10GoldenEye (1995)Action|Adventure|Thriller
+        JavaRDD<String> lines = ctx.textFile(args[0], 1);
+
+        JavaRDD<String> actionMovies = lines.filter(x -> x.substring(x.lastIndexOf("\u0001")).contains("Action"));
+
+        actionMovies.saveAsTextFile(outputPath);
+
+        ctx.stop();
+    }
+}
+```
+
+A megoldás alapgondolata, hogy a forrás adat beolvasását követően egy szűrést alkalmazunk, amivel eldobjuk azokat a sorokat amikben nem szerepel az Action mint kategória. Az eredményül kapott RDD-t csak el kell mentenünk és kész is vagyunk.
+
+Értékelések eloszlása:
+```
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import scala.Tuple2;
+
+public class SparkRatingsCount {
+
+    public static void main(String[] args) throws Exception {
+        if (args.length < 2) {
+            System.err.println("Usage: SparkRatingsCount <input-file> <output-folder>");
+            System.exit(1);
+        }
+
+        final String outputPath = args[1];
+        SparkConf sparkConf = new SparkConf().setAppName("SparkRatingsCount").setMaster("local");
+        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
+
+        // line example: 128045978300719
+        JavaRDD<String> lines = ctx.textFile(args[0], 1);
+
+        JavaPairRDD<String, Integer> ratingOnePairs = lines.mapToPair(s -> new Tuple2<>(s.split("\u0001")[2], 1));
+
+        JavaPairRDD<String, Integer> results = ratingOnePairs.reduceByKey((i1, i2) -> i1 + i2);
+
+        results.saveAsTextFile(outputPath);
+
+        ctx.stop();
+    }
+}
+```
+A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. Beolvassuk a forrást, majd a bemenet sorait kulcs - érték párokká mappeljük. Ezekbena  párokban a kulcs maga az értékelés, az érték pedig egy darab 1-es. Innentől a korábban bemutatott wordcount-hoz hasonlóan kulcs alapján összeadjuk az értékeket és így megkapjuk, hogy melyikből mennyi van.
+
 
 ## Önálló feladatok
 
