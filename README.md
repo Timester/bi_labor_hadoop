@@ -185,13 +185,13 @@ movieagent.sinks.k1.channel = c1
 
 A filmek értékelését tartalmazó adathalmazt is be kell tölteni, azonban ha vetünk egy pillantást a `ratings.dat` fájlra, láthatjuk, hogy itt a `!?!?` karaktersorozat választja el a sorok egyes mezőit. Ez a későbbiekben problémákhoz vezethet, így a betöltés során cseréljük le ezt a karaktersorozatot a Hive által ajánlott `^A` karakterre.
 
-Ezen feladat elkészítéséhez nagyban támaszkodhatunk az előzőekben létrehozott konfigurációra, azonban azt ki kell egészítenünk egy elemmel, amely a bemenő adatokon elvégzi a `!?!?` karaktersorozat `^A` karakterre cseréjét. Ilyen feladatokra lettek kitalálva az interceptorok, amelyeket a source-okhoz illeszthetünk. Használjuk a beépített Search and Replace Interceptort.
+Ezen feladat elkészítéséhez nagyban támaszkodhatunk az előzőekben létrehozott konfigurációra, azonban azt ki kell egészítenünk egy elemmel, amely a bemenő adatokon elvégzi a `!?!?` karaktersorozat `\001` karakterre cseréjét. Ilyen feladatokra lettek kitalálva az interceptorok, amelyeket a source-okhoz illeszthetünk. Használjuk a beépített Search and Replace Interceptort.
 
 ```
 movieagent.sources.r1.interceptors = srp
 movieagent.sources.r1.interceptors.srp.type = search_replace
 movieagent.sources.r1.interceptors.srp.searchPattern = !\?!\?
-movieagent.sources.r1.interceptors.srp.replaceString = ^A
+movieagent.sources.r1.interceptors.srp.replaceString = \001
 ```
 
 Módosítsuk a forrás- és célmappát:
