@@ -166,7 +166,70 @@ Azure felhőben futó Cloudera Hadoop disztribúció. Elérhetőségek:
   * Usernév: neptunkód
   * Jelszó: valami más
 
-### 1. Feladat - adatbetöltés Flume-al - adam
+### 1. Feladat - adatbetöltés Flume-al
+
+A `/user/data/movielens` elérési út alatt megtalálhatunk három adathalmazt, amelyet a [http://movielens.org](http://movielens.org) oldalon található filmadatbázisból, és a hozzá tartozó értékelésekből nyertek ki. A labor során ezekkel az adathalmazokkal fogunk dolgozni, így célszerű betölteni a saját mappánkba ezeket.
+
+#### 1.1 Feladat - Movies dataset betöltése
+
+Az első betöltendő adathalmaz néhány népszerű film adatait tartalmazza. Flume használatával töltse be ezeket az adatokat a `/user/NEPTUN/movies` mappába.
+
+Első lépésként deklaráljuk a `movieagent` komponenseit:
+```
+# Name the components on this agent
+movieagent.sources = r1
+movieagent.sinks = k1
+movieagent.channels = c1
+```
+
+Konfiguráljuk az `r1` source-ot:
+```
+# Describe/configure the source
+movieagent.sources.r1.type = spooldir
+movieagent.sources.r1.spoolDir = /user/data/movielens/movies/NEPTUN
+```
+
+Konfiguráljuk a `k1` sinket:
+```
+# Describe the sink
+movieagent.sinks.k1.type = file_roll
+movieagent.sinks.k1.sink.directory = /user/NEPTUN/movies
+movieagent.sinks.k1.batchSize = 1000
+```
+
+Konfiguráljuk a `c1` channelt:
+```
+# Use a channel which buffers events in memory
+movieagent.channels.c1.type = memory
+movieagent.channels.c1.capacity = 1000
+movieagent.channels.c1.transactionCapacity = 100
+```
+
+Kössük össze a komponenseket:
+```
+# Bind the source and sink to the channel
+movieagent.sources.r1.channels = c1
+movieagent.sinks.k1.channel = c1
+```
+
+#### 1.2 Feladat - Ratings dataset betöltése
+
+A filmek értékelését tartalmazó adathalmazt is be kell tölteni, azonban ha vetünk egy pillantást a `ratings.dat` fájlra, láthatjuk, hogy itt a `!?!?` karaktersorozat választja el a sorok egyes mezőit. Ez a későbbiekben problémákhoz vezethet, így a betöltés során cseréljük le ezt a karaktersorozatot a Hive által ajánlott `^A` karakterre.
+
+Ezen feladat elkészítéséhez nagyban támaszkodhatunk az előzőekben létrehozott konfigurációra, azonban azt ki kell egészítenünk egy elemmel, amely a bemenő adatokon elvégzi a `!?!?` karaktersorozat `^A` karakterre cseréjét. Ilyen feladatokra lettek kitalálva az interceptorok, amelyeket a source-okhoz illeszthetünk. Használjuk a beépített Search and Replace Interceptort.
+
+```
+movieagent.sources.r1.interceptors = srp
+movieagent.sources.r1.interceptors.srp.type = search_replace
+movieagent.sources.r1.interceptors.srp.searchPattern = !\?!\?
+movieagent.sources.r1.interceptors.srp.replaceString = ^A
+```
+
+Módosítsuk a forrás- és célmappát:
+```
+movieagent.sources.r1.spoolDir = /user/data/movielens/ratings/NEPTUN
+movieagent.sinks.k1.sink.directory = /user/NEPTUN/ratings
+```
 
 ### 2. Feladat - Hive lekérdezés az adatokon - imre
 
