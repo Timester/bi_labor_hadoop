@@ -349,6 +349,7 @@ Töltse be a `/user/data/movielens/users/NEPTUN` elérési út alatt található
 A betöltés során szűrje ki a 18 év alatti felhasználókat. Az adatszerkezet leírása a `/user/data/movielens/README` fájlban található.
 A feladat megoldásához ne írjon saját Flume interceptort.
 
-### 2. Feladat - Bonyolultabb Hive lekérdezés - imre
+### 2. Feladat - Bonyolultabb Hive lekérdezések
+Készítsen external adattáblát az előző feladatban betöltött felhasználói adatokhoz.
 
-### 3. Feladat - Spark program - imre
+### 3. Feladat - Spark programozás
