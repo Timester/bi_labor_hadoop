@@ -183,14 +183,14 @@ Konfiguráljuk az `r1` source-ot:
 ```
 # Describe/configure the source
 movieagent.sources.r1.type = spooldir
-movieagent.sources.r1.spoolDir = /user/cloudera/Downloads/movies/raw
+movieagent.sources.r1.spoolDir = /home/cloudera/Downloads/movies/raw
 ```
 
 Konfiguráljuk a `k1` sinket:
 ```
 # Describe the sink
 movieagent.sinks.k1.type = file_roll
-movieagent.sinks.k1.sink.directory = /user/cloudera/Downloads/movies/processed
+movieagent.sinks.k1.sink.directory = /home/cloudera/Downloads/movies/processed
 movieagent.sinks.k1.batchSize = 1000
 ```
 
@@ -224,8 +224,8 @@ movieagent.sources.r1.interceptors.srp.replaceString = ,
 
 Módosítsuk a forrás- és célmappát:
 ```
-movieagent.sources.r1.spoolDir = /user/cloudera/Downloads/ratings/raw
-movieagent.sinks.k1.sink.directory = /user/cloudera/Downloads/ratings/processed
+movieagent.sources.r1.spoolDir = /home/cloudera/Downloads/ratings/raw
+movieagent.sinks.k1.sink.directory = /home/cloudera/Downloads/ratings/processed
 ```
 
 ### 2. Feladat - Hive lekérdezés az adatokon
