@@ -159,20 +159,17 @@ Első lépésként betöltjük a forrás adatokat a HDFS-ről, ezt követően j�
 ### 0. Feladat - környezet elérése
 
 Azure felhőben futó Cloudera Hadoop disztribúció. Elérhetőségek:
-* [Hue](http://sensorhub.autsoft.hu)
-  * Usernév: neptunkód
-  * Jelszó: valami
-* [Cloudera Manager](http://sensorhub.autsoft.hu)
-  * Usernév: neptunkód
-  * Jelszó: valami más
+* [Hue](127.0.0.1:8888)
+  * Usernév: cloudera
+  * Jelszó: cloudera
 
 ### 1. Feladat - adatbetöltés Flume-al
 
-A `/user/data/movielens` elérési út alatt megtalálhatunk három adathalmazt, amelyet a [http://movielens.org](http://movielens.org) oldalon található filmadatbázisból, és a hozzá tartozó értékelésekből nyertek ki. A labor során ezekkel az adathalmazokkal fogunk dolgozni, így célszerű betölteni a saját mappánkba ezeket.
+A `data` mappában megtalálhatunk három adathalmazt, amelyet a [http://movielens.org](http://movielens.org) oldalon található filmadatbázisból, és a hozzá tartozó értékelésekből nyertek ki. A labor során ezekkel az adathalmazokkal fogunk dolgozni.
 
 #### 1.1 Feladat - Movies dataset betöltése
 
-Az első betöltendő adathalmaz néhány népszerű film adatait tartalmazza. Flume használatával töltse be ezeket az adatokat a `/user/NEPTUN/movies` mappába.
+Az első betöltendő adathalmaz néhány népszerű film adatait tartalmazza. Flume használatával töltse be ezeket az adatokat a `/user/cloudera/Downloads/movies/processed` mappába.
 
 Első lépésként deklaráljuk a `movieagent` komponenseit:
 ```
@@ -186,14 +183,14 @@ Konfiguráljuk az `r1` source-ot:
 ```
 # Describe/configure the source
 movieagent.sources.r1.type = spooldir
-movieagent.sources.r1.spoolDir = /user/data/movielens/movies/NEPTUN
+movieagent.sources.r1.spoolDir = /user/cloudera/Downloads/movies/raw
 ```
 
 Konfiguráljuk a `k1` sinket:
 ```
 # Describe the sink
 movieagent.sinks.k1.type = file_roll
-movieagent.sinks.k1.sink.directory = /user/NEPTUN/movies
+movieagent.sinks.k1.sink.directory = /user/cloudera/Downloads/movies/processed
 movieagent.sinks.k1.batchSize = 1000
 ```
 
@@ -227,47 +224,47 @@ movieagent.sources.r1.interceptors.srp.replaceString = ,
 
 Módosítsuk a forrás- és célmappát:
 ```
-movieagent.sources.r1.spoolDir = /user/data/movielens/ratings/NEPTUN
-movieagent.sinks.k1.sink.directory = /user/NEPTUN/ratings
+movieagent.sources.r1.spoolDir = /user/cloudera/Downloads/ratings/raw
+movieagent.sinks.k1.sink.directory = /user/cloudera/Downloads/ratings/processed
 ```
 
 ### 2. Feladat - Hive lekérdezés az adatokon
 
 #### Táblák létrehozása
 
-A táblákat external-ként hozzuk létre, a sémát az adatfájloknak megfelelően adjuk meg. Mivel a movies.dat adatfájl a genre mezőben több értéket is tárol, ez remek alkalom a Hive összetett adattípusainak kipróbálására. Jelen esetben ```ARAY<STRING>``` típusként vesszük fel ezt a mezőt. A tömb elemeit elválasztó karaktert a ```COLLECTION ITEMS TERMINATED BY '|'``` kulcsszavakkal definiáljuk. Az adatok helyét nem a korábban ismertetett módon adjuk meg, hanem egy külön paranccsal töltjük be. Erre azért van szükség mert a ```LOCAION``` paraméteréül csak mappa adható meg.
+A táblákat externalként hozzuk létre, a sémát az adatfájloknak megfelelően adjuk meg. Mivel a movies.dat adatfájl a genre mezőben több értéket is tárol, ez remek alkalom a Hive összetett adattípusainak kipróbálására. Jelen esetben `ARRAY<STRING>` típusként vesszük fel ezt a mezőt. A tömb elemeit elválasztó karaktert a `COLLECTION ITEMS TERMINATED BY '|'` kulcsszavakkal definiáljuk. Az adatok helyét nem a korábban ismertetett módon adjuk meg, hanem egy külön paranccsal töltjük be. Erre azért van szükség mert a `LOCAION` paraméteréül csak mappa adható meg.
 
 ```
-CREATE EXTERNAL TABLE neptunkod_movies(id INT, title STRING, genre ARRAY<STRING>)
+CREATE EXTERNAL TABLE movies(id INT, title STRING, genre ARRAY<STRING>)
 ROW FORMAT DELIMITED 
 FIELDS TERMINATED BY '\001'
 COLLECTION ITEMS TERMINATED BY '|'
 STORED AS TEXTFILE;
 
-LOAD DATA INPATH '/user/.../bilabor/movies.dat' INTO TABLE neptunkod_movies;
+LOAD DATA INPATH '/user/cloudera/movies' INTO TABLE movies;
 ```
 
 A ratings táblánál nincs szükség összetett adattípus használatára létrehozása így egyszerűbb, de az előzőhöz teljesen hasonló.
 
 ```
-CREATE EXTERNAL TABLE neptunkod_ratings(userid INT, movieid INT, rating INT, timestamp INT)
+CREATE EXTERNAL TABLE ratings(userid INT, movieid INT, rating INT, timestamp INT)
 ROW FORMAT DELIMITED 
 FIELDS TERMINATED BY '\001'
 STORED AS TEXTFILE;
 
-LOAD DATA INPATH '/user/.../bilabor/ratings.dat' INTO TABLE neptunkod_ratings;
+LOAD DATA INPATH '/user/cloudera/ratings' INTO TABLE ratings;
 ```
 
 #### Néhány egyszerű lekérdezés
 
 Akciófilmek listája:
 ```
-SELECT * FROM neptunkod_movies WHERE array_contains(genre, "Action");
+SELECT * FROM movies WHERE array_contains(genre, "Action");
 ```
 
 Értékelések eloszlása:
 ```
-SELECT rating, count(*) FROM neptunkod_ratings GROUP BY rating;
+SELECT rating, count(*) FROM ratings GROUP BY rating;
 ```
 
 ### 3. Feladat - Spark analitika
@@ -345,8 +342,8 @@ A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. 
 ## Önálló feladatok
 
 ### 1. Feladat - Users dataset betöltése Flume segítségével
-Töltse be a `/user/data/movielens/users/NEPTUN` elérési út alatt található fájlokat a saját mappájába (`/user/NEPTUN/users`)!
-A betöltés során szűrje ki a 18 év alatti felhasználókat. Az adatszerkezet leírása a `/user/data/movielens/README` fájlban található.
+Töltse be a `users` adatállományt a saját mappájába (`/user/Downloads/users/processed`)!
+A betöltés során szűrje ki a 18 év alatti felhasználókat. Az adatszerkezet leírása jelen repository `data/README` fájljában található.
 A feladat megoldásához ne írjon saját Flume interceptort.
 
 ### 2. Feladat - Bonyolultabb Hive lekérdezések
