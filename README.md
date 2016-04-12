@@ -352,4 +352,10 @@ A feladat megoldásához ne írjon saját Flume interceptort.
 ### 2. Feladat - Bonyolultabb Hive lekérdezések
 Készítsen external adattáblát az előző feladatban betöltött felhasználói adatokhoz.
 
+Írjon egy lekérdezést, amely kiírja a 10 legtöbbet értékelt film címét, azonosítóját és a rá érkezett értékelések számát!
+
+Írjon egy lekérdezést, amely kiírja a 10 legtöbb 1-es osztályzattal értékelt film címét, azonosítóját és a rá érkezett 1-es értékelések számát!
+
+Elfogadható, de kisebb értékű megoldás, ha a filmek címét nem, csak az azonosítóját jeleníti meg.
+
 ### 3. Feladat - Spark programozás
