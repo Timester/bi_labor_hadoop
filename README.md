@@ -304,15 +304,12 @@ public class SparkActionMovieCount {
 
 (Java 7):
 ```
-package hu.bme.aut;
-
-
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
-public class App {
+public class SparkActionMovieCount {
 
 	public static void main(String[] args) {
 		if (args.length < 2) {
@@ -343,7 +340,7 @@ public class App {
 
 A megoldás alapgondolata, hogy a forrás adat beolvasását követően egy szűrést alkalmazunk, amivel eldobjuk azokat a sorokat amikben nem szerepel az Action mint kategória. Az eredményül kapott RDD-t csak el kell mentenünk és kész is vagyunk.
 
-Értékelések eloszlása:
+Értékelések eloszlása (Java8):
 ```
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -376,6 +373,49 @@ public class SparkRatingsCount {
     }
 }
 ```
+
+Java 7:
+
+```
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
+
+import scala.Tuple2;
+
+public class SparkRatingsCount {
+
+    public static void main(String[] args) throws Exception {
+        if (args.length < 2) {
+            System.err.println("Usage: SparkRatingsCount <input-file> <output-folder>");
+            System.exit(1);
+        }
+
+        final String outputPath = args[1];
+        SparkConf sparkConf = new SparkConf().setAppName("SparkRatingsCount").setMaster("local");
+        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
+
+        // line example: 1�2804�5�978300719
+        JavaRDD<String> lines = ctx.textFile(args[0], 1);
+
+        JavaPairRDD<String, Integer> ratingOnePairs = lines.mapToPair(new PairFunction<String, String, Integer>() {
+			public Tuple2 call(String s) { return new Tuple2<>(s.split("\u0001")[2], 1); }
+		});
+
+        JavaPairRDD<String, Integer> results = ratingOnePairs.reduceByKey(new Function2<Integer, Integer, Integer>() {
+        	public Integer call(Integer i, Integer j) { return i + j; }  
+        });
+
+        results.saveAsTextFile(outputPath);
+
+        ctx.stop();
+    }
+}
+```
+
 A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. Beolvassuk a forrást, majd a bemenet sorait kulcs - érték párokká mappeljük. Ezekben a párokban a kulcs maga az értékelés, az érték pedig egy darab 1-es. Innentől a korábban bemutatott wordcount-hoz hasonlóan kulcs alapján összeadjuk az értékeket és így megkapjuk, hogy melyikből mennyi van.
 
 
@@ -396,3 +436,5 @@ Készítsen external adattáblát az előző feladatban betöltött felhasznál�
 Elfogadható, de kisebb értékű megoldás, ha a filmek címét nem, csak az azonosítóját jeleníti meg.
 
 ### 3. Feladat - Spark programozás
+
+
