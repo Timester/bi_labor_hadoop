@@ -158,10 +158,14 @@ Első lépésként betöltjük a forrás adatokat a HDFS-ről, ezt követően j�
 
 ### 0. Feladat - környezet elérése
 
-Azure felhőben futó Cloudera Hadoop disztribúció. Elérhetőségek:
-* [Hue](127.0.0.1:8888)
-  * Usernév: cloudera
-  * Jelszó: cloudera
+Cloudera Quickstart VM
+
+[VM](http://www.cloudera.com/downloads/quickstart_vms/5-5.html)
+
+(6 GB ram, 2 mag)
+
+hue user: cloudera
+hue pass: cloudera
 
 ### 1. Feladat - adatbetöltés Flume-al
 
@@ -441,5 +445,5 @@ Elfogadható, de kisebb értékű megoldás, ha a filmek címét nem, csak az az
 
 (opcionális) Írjon Spark programot, amely a ratings.dat adatok alapján megadja, hogy egyes felhasználók átlagosan milyen értékeléseket adtak.
 
-Segítség: (Spark programming guide)[http://spark.apache.org/docs/latest/programming-guide.html]
+Segítség: [Spark programming guide](http://spark.apache.org/docs/latest/programming-guide.html)
 
