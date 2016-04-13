@@ -249,7 +249,7 @@ A ratings táblánál nincs szükség összetett adattípus használatára létr
 ```
 CREATE EXTERNAL TABLE ratings(userid INT, movieid INT, rating INT, timestamp INT)
 ROW FORMAT DELIMITED 
-FIELDS TERMINATED BY '\001'
+FIELDS TERMINATED BY '!'
 STORED AS TEXTFILE;
 
 LOAD DATA INPATH '/user/cloudera/ratings' INTO TABLE ratings;
@@ -437,4 +437,9 @@ Elfogadható, de kisebb értékű megoldás, ha a filmek címét nem, csak az az
 
 ### 3. Feladat - Spark programozás
 
+Írjon Spark programot, ami egy fájlba kiírja az egyedi userek számát a ratings.dat adatok alapján.
+
+(opcionális) Írjon Spark programot, amely a ratings.dat adatok alapján megadja, hogy egyes felhasználók átlagosan milyen értékeléseket adtak.
+
+Segítség: (Spark programming guide)[http://spark.apache.org/docs/latest/programming-guide.html]
 
