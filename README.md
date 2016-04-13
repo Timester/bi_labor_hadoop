@@ -364,10 +364,10 @@ public class SparkRatingsCount {
         SparkConf sparkConf = new SparkConf().setAppName("SparkRatingsCount").setMaster("local");
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
 
-        // line example: 128045978300719
+        // line example: 1!2804!5!978300719
         JavaRDD<String> lines = ctx.textFile(args[0], 1);
 
-        JavaPairRDD<String, Integer> ratingOnePairs = lines.mapToPair(s -> new Tuple2<>(s.split("\u0001")[2], 1));
+        JavaPairRDD<String, Integer> ratingOnePairs = lines.mapToPair(s -> new Tuple2<>(s.split("!")[2], 1));
 
         JavaPairRDD<String, Integer> results = ratingOnePairs.reduceByKey((i1, i2) -> i1 + i2);
 
@@ -402,11 +402,11 @@ public class SparkRatingsCount {
         SparkConf sparkConf = new SparkConf().setAppName("SparkRatingsCount").setMaster("local");
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
 
-        // line example: 1�2804�5�978300719
+        // line example: 1!2804!5!978300719
         JavaRDD<String> lines = ctx.textFile(args[0], 1);
 
         JavaPairRDD<String, Integer> ratingOnePairs = lines.mapToPair(new PairFunction<String, String, Integer>() {
-			public Tuple2 call(String s) { return new Tuple2<>(s.split("\u0001")[2], 1); }
+			public Tuple2 call(String s) { return new Tuple2<>(s.split("!")[2], 1); }
 		});
 
         JavaPairRDD<String, Integer> results = ratingOnePairs.reduceByKey(new Function2<Integer, Integer, Integer>() {
