@@ -271,7 +271,7 @@ SELECT rating, count(*) FROM ratings GROUP BY rating;
 
 A Spark segítségével tetszőleges kódot írhatunk és futtathatunk az adatainkon, így jóval rugalmasabb mint a Hive, de egyszerű példáknál sok átfedés van a két eszköz tudása közt. Ezt szemléltetendő elkészítjük az előző feladat Hive-os példáit Spark segítségével is. 
 
-Akciófilmek listája:
+Akciófilmek listája (Java 8):
 ```
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -299,6 +299,46 @@ public class SparkActionMovieCount {
         ctx.stop();
     }
 }
+```
+
+
+(Java 7):
+```
+package hu.bme.aut;
+
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
+
+public class App {
+
+	public static void main(String[] args) {
+		if (args.length < 2) {
+			System.err.println("Usage: SparkActionMovieCount <input-file> <output-folder>");
+			System.exit(1);
+		}
+
+		final String outputPath = args[1];
+		SparkConf sparkConf = new SparkConf().setAppName("SparkActionMovieCount").setMaster("local");
+		JavaSparkContext ctx = new JavaSparkContext(sparkConf);
+
+		// line example: 10�GoldenEye (1995)�Action|Adventure|Thriller
+		JavaRDD<String> lines = ctx.textFile(args[0], 1);
+
+		JavaRDD<String> actionMovies = lines.filter(new Function<String, Boolean>() {
+			public Boolean call(String s) { return s.substring(s.lastIndexOf("\u0001")).contains("Action"); }
+		});
+
+		actionMovies.saveAsTextFile(outputPath);
+
+		ctx.stop();
+
+	}
+
+}
+
 ```
 
 A megoldás alapgondolata, hogy a forrás adat beolvasását követően egy szűrést alkalmazunk, amivel eldobjuk azokat a sorokat amikben nem szerepel az Action mint kategória. Az eredményül kapott RDD-t csak el kell mentenünk és kész is vagyunk.
