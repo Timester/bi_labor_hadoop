@@ -78,8 +78,17 @@ A Hive-ot a Facebook kezdte el fejleszteni, majd 2008-ban tette azt nyílt forr�
 
 Forrás: [Hive - A Petabyte Scale Data Warehouse using Hadoop](https://www.facebook.com/notes/facebook-engineering/hive-a-petabyte-scale-data-warehouse-using-hadoop/89508453919/)
 
-### Apache NiFi - [Flume](https://nifi.apache.org)
-TODO
+### Apache NiFi - [NiFi](https://nifi.apache.org)
+Az Apache NiFi egy az Apache Software Foundation által karbantartott szoftver, mely segítségével adatfolyamokat menedzselhetünk és automatizálhatunk.
+A projekt igen népszerű, többek között azon oknál fogva, hogy számos adatforrással és célponttal tud dolgozni, valamint kiterjedt lehetőségeket biztosít az adatok feldolgozására is.
+Felhasználási területei igen széleskörűek, mi egyfajta ETL eszközként fogunk rá tekinteni, amely segít az adatok különböző forrásokból történő betöltésében, előfeldolgozásában.
+
+#### Fontos fogalmak
+1. *FlowFile:* Egy FlowFile lényegében egy csomagként fogható fel, amely a rendszerben halad az egyes adatfolyamok mentén. Minden FlowFile két elemből áll össze, a metaadatokat tartalmazó attribútumokból, és a FlowFilehoz tartozó adat tartalmából.
+2. *FlowFile Processor:* A lényegi munkát a Processorok végzik el. Feladatuk lehet az adat transzformálása, routeolása, vagy betöltése valamlyen külső rendszerbe. A Processorok hozzáférnek a FlowFileok attribútumaihoz, és tartalmához is.
+3. *Connection:* Az egyes Processorokat valamilyen módon össze kell kötni, ebben segítenek a Connectionök. Annak érdekében, hogy a különböző sebességgel működő Processorok összeköthetők legyenek, a köztük lévő kapcsolatok egyfajta várakozási sorként is működnek, melyek paraméterei konfigurálhatók. 
+4. *Flow Controller:* Egyfajta ütemezőként működik, amely az egyes Processorok számára fenntartott szálakat és erőforrásokat kezeli.
+5. *Process Group:* Feldolgozási egység, amely tartalmazhat Processorokat és Connectionöket. Fogadhat, illetve küldhet adatot az Input és Output portjain keresztül. Tipikusan a különböző absztrakciós szinten mozgó feldolgozási elemek egységbe foglalására használjuk.
 
 ### Spark - [Spark](https://spark.apache.org/)
 A Spark ma a legnépszerűb adatfeldolgozó eszköz Hadoop környezetben. A korábban igen elterjedt és nagy sikernek örvendő Map Reduce paradigmát szinte teljesen felváltotta. Térnyerése a kitűnő, Map Reduce programoknál akár százszor jobb teljesítményének valamint az egyszerű, jól használható funkcionális API-jának köszönheti. Fontos megjegyezni, hogy a Spark ezt a sebességet azzal éri el, hogy minden adatot memóriában tart így olyan adathalmazok feldolgozása, amik nem férnek be a memóriába bajos lehet.
