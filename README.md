@@ -78,59 +78,8 @@ A Hive-ot a Facebook kezdte el fejleszteni, majd 2008-ban tette azt nyílt forr�
 
 Forrás: [Hive - A Petabyte Scale Data Warehouse using Hadoop](https://www.facebook.com/notes/facebook-engineering/hive-a-petabyte-scale-data-warehouse-using-hadoop/89508453919/)
 
-### Flume - [Flume](https://flume.apache.org)
-
-A Flume egy elosztott, nagy rendelkezésreállású szolgáltatás nagy mennyiségű adatok aggregálására, mozgatására és gyűjtésére. 
-Eredeti célja, hogy szerver logokat gyűjtsön és mentsen HDFS-re, de jellemzően ennél sokkal több területen használják. Számos előnnyel rendelkezik, melyek közé a jó testreszabhatóság mellett a rendkívül kis erőforrásigénye is tartozik. Utóbbival kapcsolatban fontos megemlíteni, hogy Flume-ot nem csak Big Data környezetben használhatunk, standalone alkalmazásként is futtatható, kis terhelés esetén ~100 MB memóriára van szüksége.
-A Flume architekturája három alap elemből áll, ezek a source-ok, channelök és sinkek. Ezen architektúra minden eleme tetszés szerint testreszabható, bővíthető.
-
-![Flume architektúra](https://flume.apache.org/_images/UserGuide_image00.png "Flume architektúra")
-
-#### Source
-
-Egy-egy source felel a különböző adatforrásból érkező adatok fogadásáért, esetleges feldolgozásáért (pl.: aggregálás, anonimizálás, formátum átalakítása). A Flume számos beépített source-al érkezik, melyek segítségével fogadhatunk adatot HTTP protokollon, üzenetsorokon, vagy akár a fájlrendszeren keresztül is. A Flume bármikor kiegészíthető egyedi source-okkal is, ezeknek az `org.apache.flume.Source` interfészt kell implementálniuk. Az elkészült plugint egy jar fájlba csomagolva kell a Flume rendelkezésére bocsátani.
-A source-ok kiegészíthetők még úgynevezett interceptorokkal is, melyekkel a fentebb említett feldolgozásokat valósíthatjuk meg. A custom interceptorok az `org.apache.flume.interceptor.Interceptor` interfészt kötelesek megvalósítani, melynek az `Event intercept(Event event)` metódusában történik a valódi eseményfeldolgozás. A Flume-ba érkező adatokból a source-ok eventeket generálnak, amelyek header és body résszel rendelkeznek. Az interceptorok ezen eventeket módosíthatják, vagy cserélhetik le a fent említett metódusukban.
-
-#### Channel
-
-A source-ok az eseményeket egy vagy több channelbe helyezhetik, amelyek továbbítják azokat a sinkekhez. A channel feladata, hogy a betöltött eventeket tárolja mindaddig, amíg azokat egy sink ki nem veszi belőlük. A channelök a legkevésbé gyakran customizált elemei az architektúrának, az esetek nagy részében a gyári Memory Channelt vagy File Channelt használjuk. A Memory Channel, ahogyan a neve is mutatja, egy in-memory queue-ban tárolja az eventeket, melynek maximális mérete konfigurálható. Ezt akkor használjuk, ha nagy áteresztőképességű rendszert fejlesztünk, és nem kritikus követelmény, hogy szélsőséges esetekben is minden esemény továbbításra kerüljön. A File Channel ennél jóval kisebb áteresztőképességgel rendelkezik, azonban itt még a Flume agent leaállása során sem vesznek el események.
-
-#### Sink
-
-Az eventek a channelt elhagyva úgynevezett sinkekbe érkeznek. Ezek feladata, hogy az eseményeket továbbítsák a megfelelő adatnyelő helyre. Rengeteg sink érkezik alapértelmezetten Flume-al együtt, ezek közül az egyik legfontosabb a HDFS Sink, amely HDFS fájlrendszerre tudja menteni az eseményeket, de továbbíthatjuk az eseményeket egy Kafka üzenetsorba, vagy JDBC-n keresztül rengeteg típusú adatbázisba is. Gyakori, hogy egy-egy probléma megoldása során a fejlesztők saját sinkeket használnak, melyeket viszonylag egyszerű implementálni is, de rengeteg jól használható open source plugin érhető el, így például MongoDB-hez, vagy RabbitMQ-hoz is illeszthetjük az adatbetöltő szolgáltatásunkat.
-
-#### Flume konfiguráció
-
-A Flume konfigurációja nem kódból, hanem hagyományos Java Properties fájlon keresztül történik, melyre az alábbiakban látható egy példa:
-
-```
-# Name the components on this agent
-a1.sources = r1
-a1.sinks = k1
-a1.channels = c1
-
-# Describe/configure the source
-a1.sources.r1.type = netcat
-a1.sources.r1.bind = localhost
-a1.sources.r1.port = 44444
-
-# Describe the sink
-a1.sinks.k1.type = logger
-
-# Use a channel which buffers events in memory
-a1.channels.c1.type = memory
-a1.channels.c1.capacity = 1000
-a1.channels.c1.transactionCapacity = 100
-
-# Bind the source and sink to the channel
-a1.sources.r1.channels = c1
-a1.sinks.k1.channel = c1
-```
-A konfigurálás első lépéseként a Flume agent komponenseit deklaráljuk. Ezek után a source konfigurációját láthatjuk. Meghatározzuk, hogy az `r1` source típusa `netcat`, amely egy TCP porton keresztül érkező szöveg sorait csomagolja eventekbe. Ezek után meghatározzuk, hogy a localhost 44444-es portján hallgatózzon a source.
-
-A sink típusa `logger`, amely az egyik legegyszerűbb sink, feladata, hogy az eseményeket INFO levellel logolja. Természetesen ezt leginkább csak tesztelési és debuggolási célokra használjuk.
-
-A channel konfigurálása is az előzőekhez hasonlóan történik. A konfiguráció utolsó blokkjában azt határozzuk meg, hogy az `r1` source az eseményeit a `c1` channelbe továbbítsa, ahonnan a `k1` sink fogja kivenni őket.
+### Apache NiFi - [Flume](https://nifi.apache.org)
+TODO
 
 ### Spark - [Spark](https://spark.apache.org/)
 A Spark ma a legnépszerűb adatfeldolgozó eszköz Hadoop környezetben. A korábban igen elterjedt és nagy sikernek örvendő Map Reduce paradigmát szinte teljesen felváltotta. Térnyerése a kitűnő, Map Reduce programoknál akár százszor jobb teljesítményének valamint az egyszerű, jól használható funkcionális API-jának köszönheti. Fontos megjegyezni, hogy a Spark ezt a sebességet azzal éri el, hogy minden adatot memóriában tart így olyan adathalmazok feldolgozása, amik nem férnek be a memóriába bajos lehet.
@@ -153,90 +102,70 @@ counts.saveAsTextFile("hdfs://...")
 
 Első lépésként betöltjük a forrás adatokat a HDFS-ről, ezt követően jön a feldolgozás. A bemeneti szöveget soronként feldolgozva szóközök mentén szavakra tördeljük, majd minden szót egy (szó, 1) párra mappelünk ahol a szó a kulcs és a hozzá tartozó érték minden esetben egy. A következő lépésben a reduceByKey metódussal kulcsonként csoportosítva összeadjuk az értékeket, így kapjuk meg, hogy 1 szó pontosan hányszor szerepelt a szövegben. A szó - szószám párokból álló listát végül HDFS-re mentjük.  
 
-
 ## Vezetett rész
 
 ### 0. Feladat - környezet elérése
 
-Cloudera Quickstart VM
+A labor során a Cloudera Hadoop disztribúcióját fogjuk használni, amely egyetlen virtuális gépen, a [Cloudera Quickstart VM](http://www.cloudera.com/downloads/quickstart_vms/5-5.html)-en fog futni.
+Ebben a környezetben a legfontosabb komponensek mind elérhetők, ezzel jár, hogy a virtuális gép viszonylag sok erőforrást igényel.
+A virtuális gép indítása előtt ellenőrizzük, hogy legalább 6 GB memória, illetve 2 CPU mag allokálásra került-e a gép számára.
 
-[VM](http://www.cloudera.com/downloads/quickstart_vms/5-5.html)
+Ha a gép elindult a Hue a következő címen érhető el: `10.0.2.15:8888`.
+A virtuális gépre általánosságban igaz, hogy ahol felhasználónév/jelszó párost kér, ott a `cloudera`/`cloudera` értékek használhatók.
 
-(6 GB ram, 2 mag)
+A VM indítása után külön el kell indítanunk az Apache NiFi servicet is.
+Annak érdekében, hogy az Apache NiFi megfelelően működjön a virtuális gépen elérhető viszonylag szűkös erőforrások mellett is, módosítsuk a `conf/bootstrap.conf` konfigurációs fájlt olyan módon, hogy a 48-53 sor elejéről távolítsuk el a komment jeleket.
+Nyissunk meg egy terminált, és adjuk ki a következő parancsot: `/home/cloudera/Desktop/nifi-0.7.2/bin/nifi.sh start`!
+Ezzel elindítottuk az Apache Nifit, amely a `localhost:8080/nifi` címen elérhető webes felületen keresztül konfigurálható.
+A laborvezető segítségével ismerkedjünk meg a felülettel.
 
-hue user: cloudera
-hue pass: cloudera
+### 1. Feladat - adatbetöltés Apache NiFivel
 
-### 1. Feladat - adatbetöltés Flume-al
-
-A `data` mappában megtalálhatunk három adathalmazt, amelyet a [http://movielens.org](http://movielens.org) oldalon található filmadatbázisból, és a hozzá tartozó értékelésekből nyertek ki. A labor során ezekkel az adathalmazokkal fogunk dolgozni.
+A repository `data` mappájában megtalálhatunk három adathalmazt, amelyet a [http://movielens.org](http://movielens.org) oldalon található filmadatbázisból, és a hozzá tartozó értékelésekből nyertek ki.
+A labor során ezekkel az adathalmazokkal fogunk dolgozni.
+A könnyebb munka érdekében töltsük le a teljes repository tartalmát, és másoljuk át a `data` könyvtár tartalmát az asztalra.
 
 #### 1.1 Feladat - Movies dataset betöltése
 
-Az első betöltendő adathalmaz néhány népszerű film adatait tartalmazza. Flume használatával töltse be ezeket az adatokat a `/user/cloudera/Downloads/movies/processed` mappába.
+Az első betöltendő adathalmaz néhány népszerű film adatait tartalmazza.
+Apache Nifi használatával töltsük be a fájl tartalmát HDFS-re, a `/user/cloudera/movies` mappába.
 
-Első lépésként deklaráljuk a `movieagent` komponenseit:
-```
-# Name the components on this agent
-movieagent.sources = r1
-movieagent.sinks = k1
-movieagent.channels = c1
-```
+Ehhez egy egyszerű workflowt fogunk létrehozni, amely mindössze két Processorból áll: az adatok beolvasásárért a `GetFile`, míg a HDFS-re helyezésért a `PutHDFS` Processor a felelős.
+Konfiguráljuk be ezeket úgy, hogy a GetFile a következő mappát figyelje: `/home/cloudera/Desktop/raw/movies`.
+Ez a mappa egyelőre nem létezik, ezért hozzuk is létre, majd helyezzük el benne a `movies.dat` fájl egy *másolatát*.
+(A `GetFile` Processor törli a beolvasott fájlokat, ezért fontos az, hogy a másolatot helyezzük el az adott helyen.)
 
-Konfiguráljuk az `r1` source-ot:
-```
-# Describe/configure the source
-movieagent.sources.r1.type = spooldir
-movieagent.sources.r1.spoolDir = /home/cloudera/Downloads/movies/raw
-```
+A PutHDFS Processor konfigurálása során meg kell adnunk a HDFS eléréséhez szükséges konfigurációs fájlokat, ezért a Hadoop Configuration Resources mezőbe írjuk be a következő értéket: `/etc/hadoop/conf/core-site.xml,/etc/hadoop/conf/hdfs-site.xml`.
+A cél mappát is állítsuk be megfelelően: `/user/cloudera/movies`.
 
-Konfiguráljuk a `k1` sinket:
-```
-# Describe the sink
-movieagent.sinks.k1.type = file_roll
-movieagent.sinks.k1.sink.directory = /home/cloudera/Downloads/movies/processed
-movieagent.sinks.k1.batchSize = 1000
-```
+A flow elindításával a fájlok rögtön áthelyezésre is kerülnek, ellenőrizzük ezt le a Hue segítségével.
 
-Konfiguráljuk a `c1` channelt:
-```
-# Use a channel which buffers events in memory
-movieagent.channels.c1.type = memory
-movieagent.channels.c1.capacity = 1000
-movieagent.channels.c1.transactionCapacity = 100
-```
-
-Kössük össze a komponenseket:
-```
-# Bind the source and sink to the channel
-movieagent.sources.r1.channels = c1
-movieagent.sinks.k1.channel = c1
-```
+*Ellenőrzés:* A jegyzőkönyvben helyezzen el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl.
 
 #### 1.2 Feladat - Ratings dataset betöltése
 
 A filmek értékelését tartalmazó adathalmazt is be kell tölteni, azonban ha vetünk egy pillantást a `ratings.dat` fájlra, láthatjuk, hogy itt a `!` karaktersorozat választja el a sorok egyes mezőit. Ez a későbbiekben problémákhoz vezethet, így a betöltés során cseréljük le ezt a karaktersorozatot a `,` karakterre.
 
-Ezen feladat elkészítéséhez nagyban támaszkodhatunk az előzőekben létrehozott konfigurációra, azonban azt ki kell egészítenünk egy elemmel, amely a bemenő adatokon elvégzi a `!` karaktersorozat `,` karakterre cseréjét. Ilyen feladatokra lettek kitalálva az interceptorok, amelyeket a source-okhoz illeszthetünk. Használjuk a beépített Search and Replace Interceptort.
+Annak érdekében, hogy átláthatóbb legyen a NiFi Flow konfigurációnk, hozzunk létre egy új Process Groupot, ahova bemásoljuk az eddigi Processorokat.
+Ezen kívül hozzunk létre egy másik Process Groupot is, az aktuális feladat számára.
 
-```
-movieagent.sources.r1.interceptors = srp
-movieagent.sources.r1.interceptors.srp.type = search_replace
-movieagent.sources.r1.interceptors.srp.searchPattern = !
-movieagent.sources.r1.interceptors.srp.replaceString = ,
-```
+Itt is hasonló megoldást fogunk követni, mint az előzőekben, azonban ki fogjuk azt egészíteni egy új elemmel, amely a bejövő adatokban lévő `!` karaktereket lecseréli `,` karakterekre.
+Ezt a cserét nagyon egyszerűen megoldhatjuk a `ReplaceText` Processor segítségével.
 
-Módosítsuk a forrás- és célmappát:
-```
-movieagent.sources.r1.spoolDir = /home/cloudera/Downloads/ratings/raw
-movieagent.sinks.k1.sink.directory = /home/cloudera/Downloads/ratings/processed
-```
+A `ReplaceText` Processor konfigurációja során figyeljünk arra, hogy az `Evaluation Mode` értéke soronkénti, míg a `Replacement Strategy` értéke `Literal Replace` legyen!
+
+A laborvezető segítségével állítsuk össze ezt a Flowt is, majd ellenőrizzük le a kapott eredményt!
+
+*Ellenőrzés:* A jegyzőkönyvben helyezzen el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl.
 
 ### 2. Feladat - Hive lekérdezés az adatokon
 
 #### Táblák létrehozása
 
-A táblákat externalként hozzuk létre, a sémát az adatfájloknak megfelelően adjuk meg. Mivel a movies.dat adatfájl a genre mezőben több értéket is tárol, ez remek alkalom a Hive összetett adattípusainak kipróbálására. Jelen esetben `ARRAY<STRING>` típusként vesszük fel ezt a mezőt. A tömb elemeit elválasztó karaktert a `COLLECTION ITEMS TERMINATED BY '|'` kulcsszavakkal definiáljuk. Az adatok helyét nem a korábban ismertetett módon adjuk meg, hanem egy külön paranccsal töltjük be. Erre azért van szükség mert a `LOCAION` paraméteréül csak mappa adható meg.
+A táblákat externalként hozzuk létre, a sémát az adatfájloknak megfelelően adjuk meg. Mivel a `movies.dat` adatfájl a genre mezőben több értéket is tárol, ez remek alkalom a Hive összetett adattípusainak kipróbálására.
+Jelen esetben `ARRAY<STRING>` típusként vesszük fel ezt a mezőt. A tömb elemeit elválasztó karaktert a `COLLECTION ITEMS TERMINATED BY '|'` kulcsszavakkal definiáljuk.
+Az adatok helyét nem a korábban ismertetett módon adjuk meg, hanem egy külön paranccsal töltjük be.
+Erre azért van szükség mert a `LOCAION` paraméteréül csak mappa adható meg.
 
 ```
 CREATE EXTERNAL TABLE movies(id INT, title STRING, genre ARRAY<STRING>)
@@ -248,7 +177,7 @@ STORED AS TEXTFILE;
 LOAD DATA INPATH '/user/cloudera/movies' INTO TABLE movies;
 ```
 
-A ratings táblánál nincs szükség összetett adattípus használatára létrehozása így egyszerűbb, de az előzőhöz teljesen hasonló.
+A ratings táblánál nincs szükség összetett adattípus használatára így létrehozása egyszerűbb, de az előzőhöz teljesen hasonló.
 
 ```
 CREATE EXTERNAL TABLE ratings(userid INT, movieid INT, rating INT, timestamp INT)
@@ -425,10 +354,17 @@ A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. 
 
 ## Önálló feladatok
 
-### 1. Feladat - Users dataset betöltése Flume segítségével
-Töltse be a `users` adatállományt a saját mappájába (`/user/Downloads/users/processed`)!
-A betöltés során szűrje ki a 18 év alatti felhasználókat. Az adatszerkezet leírása jelen repository `data/README` fájljában található.
-A feladat megoldásához ne írjon saját Flume interceptort.
+### 1. Feladat - Users dataset betöltése Apache NiFi segítségével
+Töltsük be a `users` adatállományt is a HDFS `/user/cloudera/users` mappába!
+A betöltés során szűrjük ki a 18 év alatti felhasználókat.
+Az adatszerkezet leírása jelen repository `data/README` fájljában található.
+
+Tippek:
+1. A bemenő fájlt soronként érdemes feldolgozni, ehhez hasznos lehet a `SplitText` Processor.
+2. A sorokra bontott fájlt szűrés után érdemes újra összefűzni, hiszen a HDFS nagyméretű fájlokra van optimalizálva.
+3. A `GetFile` Processor a FlowFileok `filename` attribútumában eltárolja a bemenő fájl nevét. A `PutHDFS` Processor ezt az attribútumot használja a fájl mentéséhez, azonban ha ütközés lép fel, azt nem tudja megfelelően kezelni. Érdemes ezért a `filename` attribútum értékét megváltoztatni olyan módon, hogy az minden FlowFile esetén egyedi legyen. (Használjuk ehhez az Apachi NiFi expression language ${nextInt()} kifejezését.)
+
+*Ellenőrzés:* A jegyzőkönyvben helyezzen el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl. A jegyzőkönyvben jelenjenek meg az egyes Processorok konfigurációi is.
 
 ### 2. Feladat - Bonyolultabb Hive lekérdezések
 Készítsen external adattáblát az előző feladatban betöltött felhasználói adatokhoz.
