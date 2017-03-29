@@ -149,7 +149,7 @@ A cél mappát is állítsuk be megfelelően: `/user/cloudera/movies`.
 
 A flow elindításával a fájlok rögtön áthelyezésre is kerülnek, ellenőrizzük ezt le a Hue segítségével.
 
-*Ellenőrzés:* A jegyzőkönyvben helyezzen el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl.
+*Ellenőrzés:* A jegyzőkönyvben helyezz el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl.
 
 #### 1.2 Feladat - Ratings dataset betöltése
 
@@ -165,7 +165,9 @@ A `ReplaceText` Processor konfigurációja során figyeljünk arra, hogy az `Eva
 
 A laborvezető segítségével állítsuk össze ezt a Flowt is, majd ellenőrizzük le a kapott eredményt!
 
-*Ellenőrzés:* A jegyzőkönyvben helyezzen el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl.
+*Ellenőrzés:* A jegyzőkönyvben helyezz el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl.
+
+*Fontos:* A szűkös erőforrások miatt a feladat elvégzése után a következő paranccsal állítsuk le az Apache NiFit: `/home/cloudera/Desktop/nifi-0.7.2/bin/nifi.sh stop`!
 
 ### 2. Feladat - Hive lekérdezés az adatokon
 
@@ -209,9 +211,27 @@ SELECT * FROM movies WHERE array_contains(genre, "Action");
 SELECT rating, count(*) FROM ratings GROUP BY rating;
 ```
 
+*Ellenőrzés:* A lekérdezések eredményeiről helyezz el egy képernyőképet a jegyzőkönyvben!
+
 ### 3. Feladat - Spark analitika
 
 A Spark segítségével tetszőleges kódot írhatunk és futtathatunk az adatainkon, így jóval rugalmasabb mint a Hive, de egyszerű példáknál sok átfedés van a két eszköz tudása közt. Ezt szemléltetendő elkészítjük az előző feladat Hive-os példáit Spark segítségével is. 
+
+Mielőtt nekilátunk a feladatnak, érdemes az Eclipse néhány beállítását módosítani a gördülékenyebb munka érdekében.
+Nyissuk meg a Preferences > Java > Editor > Content Assist menüt, és az `Auto activation delay (ms)` beállítást állítsuk 50-re, míg az `Auto activation triggers for Java` értékéül adjuk a következő stringet: `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.`!
+
+Indítsuk el a virtuális gépen az Eclipse fejlesztőkörnyezetet, és hozzunk létre egy új Maven projectet.
+A `pom.xml`-be vegyük fel függőségként a Sparkot:
+``` xml
+  	<dependencies>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-core_2.10</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+	</dependencies>
+``` 
+A fájl mentése után az Eclipse automatikusan alkalmazkodni fog az új Maven konfigurációhoz, és letölti az újonnan megjelent függőséget.
 
 Akciófilmek listája (Java 8):
 ```
@@ -360,35 +380,38 @@ public class SparkRatingsCount {
 
 A feladat megoldása csak egy hangyányit bonyolultabb mint az előző esetben. Beolvassuk a forrást, majd a bemenet sorait kulcs - érték párokká mappeljük. Ezekben a párokban a kulcs maga az értékelés, az érték pedig egy darab 1-es. Innentől a korábban bemutatott wordcount-hoz hasonlóan kulcs alapján összeadjuk az értékeket és így megkapjuk, hogy melyikből mennyi van.
 
+*Ellenőrzés:* Másold be a jegyzőkönyvbe a Spark programok által létrehozott fájlok első 5 sorát!
 
 ## Önálló feladatok
 
 ### 1. Feladat - Users dataset betöltése Apache NiFi segítségével
-Töltsük be a `users` adatállományt is a HDFS `/user/cloudera/users` mappába!
-A betöltés során szűrjük ki a 18 év alatti felhasználókat.
-Az adatszerkezet leírása jelen repository `data/README` fájljában található.
+Töltsd be a `users` adatállományt is a HDFS `/user/cloudera/users` mappába!
+A betöltés során szűrd ki a 18 év alatti felhasználókat.
+Az adatszerkezet leírása a repository `data/README` fájljában található.
 
 Tippek:
 1. A bemenő fájlt soronként érdemes feldolgozni, ehhez hasznos lehet a `SplitText` Processor.
-2. A sorokra bontott fájlt szűrés után érdemes újra összefűzni, hiszen a HDFS nagyméretű fájlokra van optimalizálva.
+2. A sorokra bontott fájlt szűrés után érdemes újra összefűzni, hiszen a HDFS nagyméretű fájlok kezelésére van optimalizálva.
 3. A `GetFile` Processor a FlowFileok `filename` attribútumában eltárolja a bemenő fájl nevét. A `PutHDFS` Processor ezt az attribútumot használja a fájl mentéséhez, azonban ha ütközés lép fel, azt nem tudja megfelelően kezelni. Érdemes ezért a `filename` attribútum értékét megváltoztatni olyan módon, hogy az minden FlowFile esetén egyedi legyen. (Használjuk ehhez az Apachi NiFi expression language ${nextInt()} kifejezését.)
 
-*Ellenőrzés:* A jegyzőkönyvben helyezzen el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl. A jegyzőkönyvben jelenjenek meg az egyes Processorok konfigurációi is.
+*Ellenőrzés:* A jegyzőkönyvben helyezz el egy képet a létrejött flowról, illetve arról, hogy a Hueban látszódik az újonnan létrehozott fájl. Jelenjenek meg az egyes Processorok konfigurációi is!
 
 ### 2. Feladat - Bonyolultabb Hive lekérdezések
-Készítsen external adattáblát az előző feladatban betöltött felhasználói adatokhoz.
+Készíts external adattáblát az előző feladatban betöltött felhasználói adatokhoz.
 
-Írjon egy lekérdezést, amely kiírja a 10 legtöbbet értékelt film címét, azonosítóját és a rá érkezett értékelések számát!
+Írj egy lekérdezést, amely kiírja a 10 legtöbbet értékelt film címét, azonosítóját és a rá érkezett értékelések számát!
 
-Írjon egy lekérdezést, amely kiírja a 10 legtöbb 1-es osztályzattal értékelt film címét, azonosítóját és a rá érkezett 1-es értékelések számát!
+Írj egy lekérdezést, amely kiírja a 10 legtöbb 1-es osztályzattal értékelt film címét, azonosítóját és a rá érkezett 1-es értékelések számát!
 
-Elfogadható, de kisebb értékű megoldás, ha a filmek címét nem, csak az azonosítóját jeleníti meg.
+Írj egy lekérdezést, amely kiírja a programozók 3 kedvenc filmjének címét, azonosítóját és a rájuk érkezett 5-ös értékelések számát! (Amelyek a legtöbb 5-ös szavazatot kapták.)
+
+*Ellenőrzés:* A jegyzőkönyvbe illeszd be a feladat végrehajtásához szükséges SQL parancsokat, illetve a 3 lekérdezés eredményéről egy-egy képernyőképet!
 
 ### 3. Feladat - Spark programozás
 
-Írjon Spark programot, ami egy fájlba kiírja az egyedi userek számát a ratings.dat adatok alapján.
+Írjon Spark programot, ami kiírja a konzolra az egyedi userek számát a ratings.dat adatok alapján.
 
-(opcionális) Írjon Spark programot, amely a ratings.dat adatok alapján megadja, hogy egyes felhasználók átlagosan milyen értékeléseket adtak.
+*Ellenőrzés:* Illeszd be a jegyzőkönyvbe az elkészült program kódját, illetve rögzítsd a kapott eredményt is. 1-2 mondatban foglald össze a megoldásod lényegét is!
 
 Segítség: [Spark programming guide](http://spark.apache.org/docs/latest/programming-guide.html)
 
