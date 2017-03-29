@@ -116,10 +116,10 @@ Első lépésként betöltjük a forrás adatokat a HDFS-ről, ezt követően j�
 ### 0. Feladat - környezet elérése
 
 A labor során a Cloudera Hadoop disztribúcióját fogjuk használni, amely egyetlen virtuális gépen, a [Cloudera Quickstart VM](http://www.cloudera.com/downloads/quickstart_vms/5-5.html)-en fog futni.
-Ebben a környezetben a legfontosabb komponensek mind elérhetők, ezzel jár, hogy a virtuális gép viszonylag sok erőforrást igényel.
+Ebben a környezetben a Cloudera Hadoop disztribúció legfontosabb komponensei mind elérhetők, emiatt a virtuális gép viszonylag sok erőforrást igényel.
 A virtuális gép indítása előtt ellenőrizzük, hogy legalább 6 GB memória, illetve 2 CPU mag allokálásra került-e a gép számára.
 
-Ha a gép elindult a Hue a következő címen érhető el: `10.0.2.15:8888`.
+Ha a gép elindult, a Hue a következő címen érhető el: `10.0.2.15:8888`.
 A virtuális gépre általánosságban igaz, hogy ahol felhasználónév/jelszó párost kér, ott a `cloudera`/`cloudera` értékek használhatók.
 
 A VM indítása után külön el kell indítanunk az Apache NiFi servicet is.
@@ -193,7 +193,7 @@ A ratings táblánál nincs szükség összetett adattípus használatára így 
 ```
 CREATE EXTERNAL TABLE ratings(userid INT, movieid INT, rating INT, timestamp INT)
 ROW FORMAT DELIMITED 
-FIELDS TERMINATED BY '!'
+FIELDS TERMINATED BY ','
 STORED AS TEXTFILE;
 
 LOAD DATA INPATH '/user/cloudera/ratings' INTO TABLE ratings;
